@@ -1,14 +1,12 @@
 import telebot
-import os
-from dotenv import load_dotenv  # $pip3 install python-dotenv
+from decouple import config  # pip3 install python-decouple
 
 
-load_dotenv()
 # SECURITY WARNING: keep the secret key used in production secret!
-API_TOKEN = os.getenv('API_TOKEN')
-BOT_NAME = os.getenv('BOT_NAME')
+API_TOKEN = config('API_TOKEN')
+CHAT_ID = config('CHAT_ID')
 
 
-def send_notyfy(message):
+def send_notify(message):
     bot = telebot.TeleBot(API_TOKEN)
-    bot.send_message(BOT_NAME, message)
+    bot.send_message(CHAT_ID, message)

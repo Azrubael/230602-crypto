@@ -9,7 +9,7 @@ from pywebio.session import run_js
 class TaskHandler:
 
     def __init__(self):
-        self.__coins = ["BTC", "ETH"]
+        self.__coins = ["BTC", "ETH", "DOT", "LTC", "XRP"]
 
 
     @staticmethod
@@ -51,12 +51,12 @@ class TaskHandler:
                 put_button(f"delete {name}", onclick=partial(TaskHandler.delete_task_in_file, name))
             ])
 
-        # кнопка добавления всей таблицы с даными на экран
+        # a button to add all the table wih data on the screen
         put_table(
             result,
             header=["name", "price to alert", "delete?"]
         )
-        # кнопка "Назад" вызывает JavaScript
+        # a button "Back" calls JavaScript
         put_button("Back", onclick=lambda: run_js("location.reload()"))
 
 
@@ -76,5 +76,5 @@ class TaskHandler:
             run_js("location.reload()")
             TaskHandler.add_task_to_file({
                 "name": coin_ticker.lower(),
-                "price to alert": price.replace('.', '',).replace(',', '').lower()
+                "price to alert": price.replace(',', '.').lower()
             })

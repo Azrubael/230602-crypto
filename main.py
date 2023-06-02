@@ -5,11 +5,13 @@ import pywebio.input as inp
 from pywebio.output import *
 
 from handlers.menu import TaskHandler
+from handlers.parser import check_coins_balance
 
 
 @pywebio.config(theme="dark")
 async def main():
     clear()
+    threading.Thread(target=check_coins_balance).start()
 
     task = TaskHandler()
     logo_path = os.path.join("data", "logo.jpg")
