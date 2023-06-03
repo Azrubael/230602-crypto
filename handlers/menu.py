@@ -10,6 +10,7 @@ class TaskHandler:
 
     def __init__(self):
         self.__coins = ["BTC", "ETH", "DOT", "LTC", "XRP"]
+        self.__position = ["LONG", "SHORT"]
 
 
     @staticmethod
@@ -21,9 +22,10 @@ class TaskHandler:
     @staticmethod
     def add_task_to_file(data: dict):
         last_changes = TaskHandler.read_task_file()
-        last_changes[data["name"]] = data["price to alert"]
+        last_changes[data["name"]] = [data["alert price"], data["position"]]
         with open("tasks.json", "w", encoding="utf-8") as file:
             json.dump(last_changes, file, indent=4)
+        print(last_changes)
 
 
     @staticmethod
@@ -37,44 +39,59 @@ class TaskHandler:
         except KeyError:
             print("Key is absent in the task list")
         if update:
-            run_js("location.reload()")    
+            run_js("location.reload()")
+        print(last_changes)
 
 
     @staticmethod
     def get_task_list():
-        result = []     # для хранения заданий
+        result = []             # for tasks
         tasks = TaskHandler.read_task_file()
-        for name, price in tasks.items():
+        for name, pos_data in tasks.items():
             result.append([
                 name,
-                price,
+                pos_data[0],
+                pos_data[1],
                 put_button(f"delete {name}", onclick=partial(TaskHandler.delete_task_in_file, name))
             ])
-
-        # a button to add all the table wih data on the screen
-        put_table(
+        put_table(              # all the table with data on the screen
             result,
-            header=["name", "price to alert", "delete?"]
+            header=["name", "alert price", "position", "delete?"]
         )
         # a button "Back" calls JavaScript
         put_button("Back", onclick=lambda: run_js("location.reload()"))
 
 
     @staticmethod
-    def add_task_validate(data):
+    def add_price_validate(data):
         if data is None or data == "":
             return "price", "You need to fill a field"
 
 
-    async def add_task_in_list(self):
-        coin_ticker = await inp.select("Select a coin", self.__coins, multiple=False)
-        price = await inp.input("Enter awaiting price", validate=TaskHandler.add_task_validate)
+    @staticmethod
+    def add_position_validate(position, ticker):
+        last_changes = TaskHandler.read_task_file()
+        if ticker in last_changes.keys() and\
+            last_changes[ticker][1] == position:
+            return True
+        return False
 
-        if all([coin_ticker, price]):
-            toast("A task created successfully")
-            await asyncio.sleep(2)
+
+    async def add_task_in_list(self):
+        ticker = await inp.select("Select a coin", self.__coins, multiple=False)
+        price = await inp.input("Enter awaiting price", validate=TaskHandler.add_price_validate)
+        position = await inp.select("Select position", self.__position, multiple=False)
+        position_exists = TaskHandler.add_position_validate(position.upper(), ticker.upper())
+        if all([ticker, price, position]) and position_exists:
+            await asyncio.sleep(1)
             run_js("location.reload()")
             TaskHandler.add_task_to_file({
-                "name": coin_ticker.lower(),
-                "price to alert": price.replace(',', '.').lower()
+                "name": ticker.upper(),
+                "alert price": price.replace(',', '.'),
+                "position": position.upper()
             })
+            toast("A task created successfully")
+        elif all([ticker, price, position]) and not position_exists:
+            toast(f"A task cannot create because a position {ticker.upper()}USD {position.upper()} already exists")
+            await asyncio.sleep(1)
+            TaskHandler.get_task_list()

@@ -23,13 +23,13 @@ def get_crypto_rank(coins):
     for row in rows:
         ticker = row.find("span", class_="profile__subtitle-name")
         if ticker:
-            ticker = ticker.text.strip().lower()
+            ticker = ticker.text.strip().upper()
 
             if ticker in coins:
                 price = row.find("td", class_="table__cell--responsive")
                 if price:
                     converted_price = converter(price)
-                result[ticker.lower()] = converted_price
+                result[ticker.upper()] = converted_price
     return result
 
 
@@ -38,13 +38,15 @@ def check_coins_balance():
     while True:
         coins = TaskHandler.read_task_file()
         coin_dict = get_crypto_rank(coins.keys())
-        for name, price in coins.items():
+        for name, pos_data in coins.items():
             if name in coin_dict:
-                if coin_dict[name] <= float(price):
-                    send_notify(f"[{name}] - you can BUY\ncurrent price: {coin_dict[name]}")
+                if coin_dict[name] <= float(pos_data[0]) and\
+                    pos_data[1] == "LONG":
+                    send_notify(f"{name.upper()}USD - you can BUY\ncurrent price: {coin_dict[name]}")
                     TaskHandler.delete_task_in_file(name, update=False)
-                else:
-                    send_notify(f"[{name}] - you can SELL\ncurrent price: {coin_dict[name]}\ntarget price{price}")
+                elif coin_dict[name] > float(pos_data[0]) and\
+                    pos_data[1] == "SHORT":
+                    send_notify(f"{name.upper()}USD - you can SELL\ncurrent price: {coin_dict[name]}\ntarget price{pos_data[1]}")
                     TaskHandler.delete_task_in_file(name, update=False)
 
         time.sleep(20)

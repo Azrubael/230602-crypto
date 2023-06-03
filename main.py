@@ -1,5 +1,6 @@
 import os
 import threading
+import sys
 import pywebio  # https://pywebio.readthedocs.io/en/latest/
 import pywebio.input as inp
 from pywebio.output import *
@@ -21,7 +22,8 @@ async def main():
         "Select the desired option",
         [
             "Add a task",
-            "The task list"
+            "The task list",
+            "Exit from program"
         ]
     )
 
@@ -29,6 +31,9 @@ async def main():
         await task.add_task_in_list()
     elif "The task list" == method:
         task.get_task_list()
+    elif "Exit from program" == method:
+        toast("Application stopped successfully") 
+        sys.exit(0)
         
 
 if __name__ == "__main__":
