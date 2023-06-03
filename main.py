@@ -1,6 +1,5 @@
 import os
 import threading
-import sys
 import pywebio  # https://pywebio.readthedocs.io/en/latest/
 import pywebio.input as inp
 from pywebio.output import *
@@ -12,7 +11,9 @@ from handlers.parser import check_coins_balance
 @pywebio.config(theme="dark")
 async def main():
     clear()
-    threading.Thread(target=check_coins_balance).start()
+    back_thread = threading.Thread(target=check_coins_balance)
+    back_thread.daemon = True
+    back_thread.start()
 
     task = TaskHandler()
     logo_path = os.path.join("data", "logo.jpg")
@@ -32,8 +33,8 @@ async def main():
     elif "The task list" == method:
         task.get_task_list()
     elif "Exit from program" == method:
-        toast("Application stopped successfully") 
-        sys.exit(0)
+        toast("Application stopped successfully")
+        raise SystemExit(0)
         
 
 if __name__ == "__main__":
